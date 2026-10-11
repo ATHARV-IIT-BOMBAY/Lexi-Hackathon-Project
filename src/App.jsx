@@ -1628,16 +1628,25 @@ function CertificateModal({ user, onClose }) {
 function TeacherDashboard({ user, onClose }) {
   const history = getUserHistory(user.username);
   const totalAttempts = history.length;
-  const avgScore = totalAttempts > 0 
-    ? Math.round(history.reduce((sum, item) => sum + item.score, 0) / totalAttempts) 
+  const avgScore = totalAttempts > 0
+    ? Math.round(history.reduce((sum, item) => sum + item.score, 0) / totalAttempts)
     : 0;
   const streak = calculateStreak(history);
+
+  // Weakest practiced items (>=2 attempts) — the actionable "work on these next" list
+  const byTarget = {};
+  history.forEach(it => { if (it.targetItem) (byTarget[it.targetItem] = byTarget[it.targetItem] || []).push(it.score); });
+  const focusAreas = Object.entries(byTarget)
+    .map(([t, s]) => ({ t, avg: Math.round(s.reduce((a, b) => a + b, 0) / s.length), n: s.length }))
+    .filter(x => x.n >= 2)
+    .sort((a, b) => a.avg - b.avg)
+    .slice(0, 5);
 
   return (
     <div className="portal-overlay" onClick={onClose}>
       <div className="word-editor-box" onClick={e => e.stopPropagation()} style={{ width: '600px', maxWidth: '90vw' }}>
         <div className="word-editor-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h2 style={{margin:0}}>Teacher Dashboard</h2>
+          <h2 style={{margin:0}}>Progress Report</h2>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
               onClick={() => window.print()}
@@ -1716,6 +1725,26 @@ function TeacherDashboard({ user, onClose }) {
             </div>
           </div>
         </div>
+
+        {focusAreas.length > 0 && (
+          <div style={{ marginTop: '1rem', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '10px', padding: '1rem' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#9a3412' }}>🎯 Focus Areas (work on these next)</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {focusAreas.map(f => (
+                <span key={f.t} style={{ background: 'white', border: '1px solid #fed7aa', borderRadius: '8px', padding: '0.35rem 0.6rem', fontWeight: 'bold', color: '#334155' }}>
+                  {f.t} <span style={{ color: f.avg >= 80 ? '#22c55e' : f.avg >= 50 ? '#eab308' : '#ef4444' }}>{f.avg}/100</span>
+                </span>
+              ))}
+            </div>
+            <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.9rem', color: '#9a3412' }}>
+              Suggested goal: form each of these with correct stroke order in 8 of 10 attempts.
+            </p>
+          </div>
+        )}
+
+        <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#94a3b8', textAlign: 'center', lineHeight: 1.5 }}>
+          Lexi is a handwriting <b>practice &amp; progress</b> tool, not a diagnosis. All data stays on this device — nothing is uploaded.
+        </p>
       </div>
     </div>
   );
@@ -2617,9 +2646,18 @@ function App() {
           <Coins size={20} /> {coins}
         </div>
         <div className="profile-badge-divider"></div>
-        <div 
-          className="profile-badge-btn" 
-          onClick={() => setShowStudentPortal(true)} 
+        <div
+          className="profile-badge-btn"
+          onClick={() => setShowDashboard(true)}
+          title="Progress Report (for teachers & parents)"
+          style={{ color: '#0ea5e9' }}
+        >
+          <FileText size={20} />
+        </div>
+        <div className="profile-badge-divider"></div>
+        <div
+          className="profile-badge-btn"
+          onClick={() => setShowStudentPortal(true)}
           title="View Student Portal"
         >
           <span style={{fontSize: '1.5rem'}}>{currentUser.avatar}</span>
@@ -3275,7 +3313,7 @@ function App() {
 
               {(feedback.clinicalAnalysis) && (
                 <div className="teacher-report" style={{ marginTop: '30px', background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                  <h4 style={{margin: '0 0 15px 0', fontSize: '1.2rem', color: '#0f172a', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px'}}>Clinical Markers Detected</h4>
+                  <h4 style={{margin: '0 0 15px 0', fontSize: '1.2rem', color: '#0f172a', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px'}}>Progress Indicators <span style={{fontSize: '0.8rem', fontWeight: 'normal', color: '#94a3b8'}}>— practice signals, not a diagnosis</span></h4>
                   <p style={{margin: '0 0 15px 0', color: '#475569', fontSize: '0.95rem'}}><strong>Student:</strong> {currentUser?.name || "Guest"} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Historical Average Score:</strong> {averageScore}</p>
                   <ul style={{fontSize: '0.95rem', paddingLeft: '20px', color: '#334155', margin:0, lineHeight: 1.6}}>
                     {Array.isArray(feedback.clinicalAnalysis) ? (
