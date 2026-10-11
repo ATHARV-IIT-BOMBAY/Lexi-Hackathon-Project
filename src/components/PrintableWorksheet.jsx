@@ -7,7 +7,7 @@ export default function PrintableWorksheet({ history, user }) {
   const targetScores = {};
   history.forEach(item => {
     if (item.mode === 'letters' || item.mode === 'words') {
-      const target = String(item.target || item.mission).split(' ')[0];
+      const target = String(item.targetItem || item.mission).split(' ')[0];
       if (target && target.length > 0) {
         if (!targetScores[target]) targetScores[target] = [];
         targetScores[target].push(item.score);
@@ -65,7 +65,7 @@ export default function PrintableWorksheet({ history, user }) {
               {allStrokes.map((stroke, sIdx) => (
                 <polyline
                   key={sIdx}
-                  points={stroke.points.map(p => `${p.x},${p.y}`).join(' ')}
+                  points={stroke.points.map(p => `${p[0]},${p[1]}`).join(' ')}
                   fill="none"
                   stroke="#94a3b8"
                   strokeWidth="3"

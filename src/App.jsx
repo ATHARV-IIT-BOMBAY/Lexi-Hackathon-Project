@@ -10,7 +10,6 @@ import {
   Square, Triangle, Circle, RectangleHorizontal, Hexagon, Diamond
 } from 'lucide-react';
 import Confetti from 'react-confetti';
-import { puter } from '@heyputer/puter.js';
 import Draggable from 'react-draggable';
 import PrintableWorksheet from './components/PrintableWorksheet';
 import VoiceSettingsModal from './components/VoiceSettingsModal';
@@ -1672,7 +1671,7 @@ function TeacherDashboard({ user, onClose }) {
               {history.slice().reverse().map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', borderBottom: idx < history.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
                   <div>
-                    <div style={{ fontWeight: 'bold', color: '#334155' }}>{item.mode.toUpperCase()}: {item.target || item.mission || 'Drawing'}</div>
+                    <div style={{ fontWeight: 'bold', color: '#334155' }}>{item.mode.toUpperCase()}: {item.targetItem || item.mission || 'Drawing'}</div>
                     <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{new Date(item.date).toLocaleString()}</div>
                   </div>
                   <div style={{ fontWeight: 'bold', color: item.score >= 80 ? '#22c55e' : '#eab308', display: 'flex', alignItems: 'center' }}>
@@ -1771,7 +1770,7 @@ function App() {
   const [showStudentPortal, setShowStudentPortal] = useState(false);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [isLowercase, setIsLowercase] = useState(false);
-  const [language, setLanguage] = useState('en'); // 'en', 'es', 'fr', 'zh', 'ja', 'ko'
+  const [language, setLanguage] = useState('en'); // 'en', 'es', 'fr', 'de', 'it'
   const [showLangMenu, setShowLangMenu] = useState(false);
 
   const [telemetryData, setTelemetryData] = useState(null);
@@ -2140,7 +2139,6 @@ function App() {
       setSelectedLetter('A');
       setCurrentMission(`Draw a big letter "A"!`);
     } else if (mode === 'words') {
-      const firstWord = practiceWords[0] || 'Cat';
       setCurrentMission(`Write the word "${selectedWord}"!`);
     } else if (mode === 'sentences') {
       setCurrentMission(`Write the sentence!`);
@@ -2151,8 +2149,6 @@ function App() {
       setCurrentMission(`Listen carefully and spell the word!`);
       speakWord(selectedSpellingWord);
     }
-    
-    drawingCanvasRef.current?.clearCanvas();
   };
 
   const speakWord = (word) => {
@@ -2262,12 +2258,6 @@ function App() {
         setTimeout(() => setJustEarnedCoins(0), 3000);
       }
 
-      let targetItem = null;
-      if (therapyMode === 'letters') targetItem = selectedLetter;
-      if (therapyMode === 'spelling') targetItem = selectedSpellingWord;
-      if (therapyMode === 'numbers') targetItem = selectedNumber;
-      if (therapyMode === 'sentences') targetItem = selectedSentence;
-
       saveUserScore(currentUser.username, {
         score: result.score,
         mode: therapyMode,
@@ -2322,6 +2312,7 @@ function App() {
               transitionTo(() => {
                 // Auto-login as Alex for demo
                 const demoUser = DUMMY_USERS[0];
+                getUserHistory(demoUser.username); // seed demo data before reading coins/inventory
                 setCurrentUser(demoUser);
                 setTherapyMode('letters');
                 setCoins(getUserCoins(demoUser.username));
@@ -2347,6 +2338,7 @@ function App() {
       <div className={`page-transition ${fadeClass}`}>
         <LoginScreen onLogin={(user) => {
           transitionTo(() => {
+            getUserHistory(user.username); // seed any demo data before reading coins/inventory
             setCurrentUser(user);
             setTherapyMode('letters');
             setCoins(getUserCoins(user.username));
@@ -3180,11 +3172,6 @@ function App() {
             {feedback.error ? (
               <div style={{ color: '#ef4444', textAlign: 'center', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                 <div><strong>Oops!</strong> {feedback.error}</div>
-                {feedback.error.includes('Unauthorized') && (
-                  <button className="button" style={{ background: '#ec4899', width: '100%' }} onClick={() => puter.auth.signIn()}>
-                    Sign In to Unlock AI
-                  </button>
-                )}
               </div>
             ) : (
               <>
@@ -3325,7 +3312,7 @@ function App() {
               setCoins(prev => prev - item.cost);
               const newColors = purchaseColor(currentUser.username, item.value);
               setPurchasedColors(newColors);
-              setPenColor(item.value);
+              if (item.type === 'color') setPenColor(item.value);
             }
           }}
           onBuyGift={handleBuyGift}

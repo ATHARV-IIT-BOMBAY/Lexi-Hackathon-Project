@@ -287,19 +287,19 @@ export async function analyzeTelemetry(telemetryData, therapyMode, targetItem, l
   const clinicalAnalysis = [];
   
   clinicalAnalysis.push(`Overall Score: ${finalScore}/100 (Dyslexia-Informed Weighted Mean)`);
-  clinicalAnalysis.push(`Shape Accuracy (15% Weight): ${Math.round(scoreAccuracy)}/100`);
-  clinicalAnalysis.push(`Stroke Coverage (15% Weight): ${Math.round(scoreCoverage)}/100`);
+  clinicalAnalysis.push(`Shape Accuracy (20% Weight): ${Math.round(scoreAccuracy)}/100`);
+  clinicalAnalysis.push(`Stroke Coverage (20% Weight): ${Math.round(scoreCoverage)}/100`);
   clinicalAnalysis.push(`Motor Planning (10% Weight): ${Math.round(scoreMotorPlanning)}/100 (Expected ${expectedStrokeCount} strokes, drew ${strokes.length})`);
-  clinicalAnalysis.push(`Orthographic Recall (10% Weight): ${Math.round(scoreRecall)}/100 (Avg Lift Time: ${Math.round(totalLiftTime / (strokes.length > 1 ? strokes.length-1 : 1))}ms)`);
+  clinicalAnalysis.push(`Orthographic Recall (5% Weight): ${Math.round(scoreRecall)}/100 (Avg Lift Time: ${Math.round(totalLiftTime / (strokes.length > 1 ? strokes.length-1 : 1))}ms)`);
   clinicalAnalysis.push(`Start Point Accuracy (5% Weight): ${Math.round(scoreStartPoint)}/100`);
-  clinicalAnalysis.push(`Fluidity (10% Weight): ${Math.round(scoreFluidity)}/100 (${velocityInversions} velocity inversions)`);
-  clinicalAnalysis.push(`Tremor (10% Weight): ${Math.round(scoreTremor)}/100 (${sharpAngleChanges} sharp angle changes)`);
+  clinicalAnalysis.push(`Fluidity (5% Weight): ${Math.round(scoreFluidity)}/100 (${velocityInversions} velocity inversions)`);
+  clinicalAnalysis.push(`Tremor (5% Weight): ${Math.round(scoreTremor)}/100 (${sharpAngleChanges} sharp angle changes)`);
   clinicalAnalysis.push(`Cognitive Load (10% Weight): ${Math.round(scoreCognitiveLoad)}/100 (${Math.round(midStrokePauses)}ms paused mid-stroke)`);
   clinicalAnalysis.push(`Proportionality (5% Weight): ${Math.round(scoreProportionality)}/100`);
   clinicalAnalysis.push(`Size Control (5% Weight): ${Math.round(scoreSize)}/100`);
   clinicalAnalysis.push(`Directionality (2.5% Weight): ${Math.round(scoreDirectionality)}/100 (${strokeVerticalDirection})`);
   clinicalAnalysis.push(`Biomechanics (2.5% Weight): ${Math.round(scoreBiomechanics)}/100 (Avg Speed: ${Math.round(avgSpeed)}px/s)`);
-  clinicalAnalysis.push(`Order & Proximity (10% Weight): ${Math.round(scoreOrderAndProximity)}/100 (-${orderPenalty} penalty)`);
+  clinicalAnalysis.push(`Order & Proximity (5% Weight): ${Math.round(scoreOrderAndProximity)}/100 (-${orderPenalty} penalty)`);
 
   // Formulate Contextual Kid Feedback
   let kidFeedback = "Great job! Keep practicing!";

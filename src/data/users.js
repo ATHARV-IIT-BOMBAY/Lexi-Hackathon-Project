@@ -12,7 +12,7 @@ export const DUMMY_USERS = [
 ];
 
 export const getUserHistory = (username) => {
-  if (username === 'alex' && !localStorage.getItem('dysco_history_alex_seeded_v5')) {
+  if (username === 'alex' && !localStorage.getItem('dysco_history_alex_seeded_v7')) {
     const dummyHistory = [];
     const now = new Date();
     const modes = ['letters', 'words', 'sentences', 'numbers', 'tracing'];
@@ -40,6 +40,7 @@ export const getUserHistory = (username) => {
     for (let i = 8; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
+      d.setHours(9, 0, 0, 0); // anchor each day at 9am so the per-session time spread can't spill past midnight into a future day
       
       const sessionsCount = 20 + Math.floor(Math.random() * 10); // 20 to 30 sessions per day
       
@@ -92,9 +93,9 @@ export const getUserHistory = (username) => {
     
     localStorage.setItem('dysco_history_alex', JSON.stringify(dummyHistory));
     localStorage.setItem('dysco_coins_alex', '4230');
-    localStorage.setItem('dysco_purchased_colors_alex', JSON.stringify(["#ef4444", "#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"]));
-    localStorage.setItem('dysco_purchased_gifts_alex', JSON.stringify(["robot", "gamepad"]));
-    localStorage.setItem('dysco_history_alex_seeded_v5', 'true');
+    localStorage.setItem('dysco_purchased_alex', JSON.stringify(["#ef4444", "#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"]));
+    localStorage.setItem('dysco_gifts_alex', JSON.stringify(["robot", "gamepad"]));
+    localStorage.setItem('dysco_history_alex_seeded_v7', 'true');
   }
 
   const data = localStorage.getItem(`dysco_history_${username}`);
