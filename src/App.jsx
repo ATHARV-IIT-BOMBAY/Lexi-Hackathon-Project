@@ -2417,6 +2417,22 @@ function App() {
   const lastPoint = lastStroke?.[lastStroke.length - 1];
   const duration = points > 0 && firstPoint && lastPoint ? (lastPoint.time - firstPoint.time) / 1000 : 0;
 
+  // Lexi's Picks: the child's weakest practiced letters, surfaced as quick-practice suggestions
+  const lexiPicks = (() => {
+    const byT = {};
+    userHistory.forEach(it => {
+      if (it.mode === 'letters' && it.targetItem && it.targetItem.length === 1) {
+        (byT[it.targetItem] = byT[it.targetItem] || []).push(it.score);
+      }
+    });
+    return Object.entries(byT)
+      .map(([t, s]) => ({ t, avg: s.reduce((a, b) => a + b, 0) / s.length, n: s.length }))
+      .filter(x => x.n >= 2 && x.avg < 85)
+      .sort((a, b) => a.avg - b.avg)
+      .slice(0, 3)
+      .map(x => x.t);
+  })();
+
   return (
     <div className={`app-container bg-mode-${therapyMode} page-transition ${fadeClass}`} style={{ filter: dyslexiaTheme ? 'contrast(1.2)' : 'none' }}>
       <div className="print-only">
@@ -2540,7 +2556,33 @@ function App() {
              </div>
           )}
 
-          <DrawingCanvas 
+          {(therapyMode === 'letters' || therapyMode === 'numbers') && points === 0 && !isGuiding && expectedStrokesData.length > 0 && (
+            <svg
+              className="stroke-order-guide"
+              width="3000" height="3000" viewBox="0 0 3000 3000"
+              style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 5 }}
+            >
+              {(() => {
+                const seen = [];
+                return expectedStrokesData.map((stroke, i) => {
+                  const start = stroke.points && stroke.points[0];
+                  if (!start) return null;
+                  const near = seen.filter(p => Math.hypot(p[0] - start[0], p[1] - start[1]) < 130).length;
+                  const cx = start[0] + near * 125; // fan out strokes that begin at the same point (e.g. the apex of "A")
+                  const cy = start[1];
+                  seen.push(start);
+                  return (
+                    <g key={i}>
+                      <circle cx={cx} cy={cy} r="55" fill="#ec4899" opacity="0.9" />
+                      <text x={cx} y={cy + 21} textAnchor="middle" fontSize="62" fontWeight="bold" fill="white" fontFamily="'Fredoka One', cursive">{i + 1}</text>
+                    </g>
+                  );
+                });
+              })()}
+            </svg>
+          )}
+
+          <DrawingCanvas
             ref={drawingCanvasRef} 
             onDrawEnd={(data) => {
               setTelemetryData(data);
@@ -2791,6 +2833,23 @@ function App() {
           >
             Aa
           </button>
+          {lexiPicks.length > 0 && (
+            <>
+              {lexiPicks.map(letter => (
+                <button
+                  key={`pick-${letter}`}
+                  className={`shape-btn ${selectedLetter === letter ? 'active' : ''}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { setIsLowercase(letter === letter.toLowerCase()); handleLetterChange(letter); }}
+                  title={`Lexi suggests practicing "${letter}" — it's been tricky`}
+                  style={{ fontFamily: "'Fredoka One', cursive", fontSize: '1.2rem', background: '#fdf2f8', color: '#ec4899', border: '2px solid #f9a8d4' }}
+                >
+                  ⭐{letter}
+                </button>
+              ))}
+              <div style={{ width: '2px', height: '30px', background: '#cbd5e1', margin: '0 0.5rem' }}></div>
+            </>
+          )}
           {(isLowercase ? ALPHABET_LOWER : ALPHABET).map((letter, index) => {
             const isActive = selectedLetter === letter;
             return (
